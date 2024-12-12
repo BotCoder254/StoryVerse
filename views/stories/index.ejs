@@ -1,0 +1,97 @@
+<!-- Page Title -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Stories</h1>
+
+    <!-- Stories Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% stories.forEach(story => { %>
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+                <!-- Story Preview -->
+                <div class="relative aspect-w-16 aspect-h-9">
+                    <% if (story.mediaType === 'video') { %>
+                        <video src="<%= story.mediaUrl %>" class="w-full h-full object-cover"></video>
+                    <% } else { %>
+                        <img src="<%= story.mediaUrl || story.thumbnail %>" alt="<%= story.title %>" class="w-full h-full object-cover">
+                    <% } %>
+                    
+                    <!-- Story Info Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex flex-col justify-end">
+                        <div class="flex items-center">
+                            <a href="/users/profile/<%= story.user._id %>" class="flex items-center">
+                                <img 
+                                    src="<%= story.user.profileImage %>" 
+                                    alt="<%= story.user.displayName %>"
+                                    class="w-10 h-10 rounded-full border-2 border-white"
+                                >
+                                <div class="ml-3">
+                                    <p class="text-white font-medium"><%= story.user.displayName %></p>
+                                    <p class="text-gray-300 text-sm">
+                                        <%= new Date(story.createdAt).toLocaleDateString() %> • 
+                                        <%= story.readTime %> min read
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">
+                        <a href="/stories/<%= story._id %>" class="hover:text-indigo-600">
+                            <%= story.title %>
+                        </a>
+                    </h3>
+                    
+                    <div class="flex items-center justify-between text-sm text-gray-500">
+                        <div class="flex items-center space-x-4">
+                            <span class="flex items-center">
+                                <i class="far fa-eye mr-1"></i>
+                                <%= story.viewerStats ? story.viewerStats.totalViews : 0 %>
+                            </span>
+                            <span class="flex items-center">
+                                <i class="far fa-heart mr-1"></i>
+                                <%= story.likes ? story.likes.length : 0 %>
+                            </span>
+                            <span class="flex items-center">
+                                <i class="far fa-comment mr-1"></i>
+                                <%= story.comments ? story.comments.length : 0 %>
+                            </span>
+                        </div>
+                        <span><%= story.timeRemainingText %></span>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+
+    <!-- Create Story Button (Fixed) -->
+    <% if (user) { %>
+        <a href="/stories/add" class="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white hover:bg-indigo-700 transition-colors z-50">
+            <i class="fas fa-plus text-xl"></i>
+        </a>
+    <% } %>
+</div>
+
+<!-- Story Progress Indicator Script -->
+<script>
+    // Auto-play videos on hover
+    document.querySelectorAll('video').forEach(video => {
+        video.addEventListener('mouseenter', () => {
+            video.play();
+        });
+        video.addEventListener('mouseleave', () => {
+            video.pause();
+            video.currentTime = 0;
+        });
+    });
+
+    // Story ring progress animation
+    document.querySelectorAll('.story-ring').forEach(ring => {
+        const progress = ring.getAttribute('data-progress');
+        ring.style.background = `conic-gradient(
+            from 0deg,
+            rgb(99 102 241) ${progress}%,
+            rgb(229 231 235) ${progress}%
+        )`;
+    });
+</script> 

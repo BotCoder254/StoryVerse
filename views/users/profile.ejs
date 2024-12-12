@@ -1,0 +1,151 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- Profile Header -->
+        <div class="p-6 sm:p-8 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center">
+                <!-- Profile Image -->
+                <div class="relative mb-4 sm:mb-0 sm:mr-6">
+                    <div class="w-24 h-24 rounded-full overflow-hidden">
+                        <img src="<%= user.profileImage %>" alt="<%= user.displayName %>" class="w-full h-full object-cover">
+                    </div>
+                    <% if (currentUser && currentUser._id.toString() !== user._id.toString()) { %>
+                        <button class="follow-button absolute -bottom-2 right-0 bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-indigo-700 transition-colors"
+                                data-user-id="<%= user._id %>"
+                                data-following="<%= currentUser.isFollowing(user._id) %>">
+                            <i class="fas <%= currentUser.isFollowing(user._id) ? 'fa-check' : 'fa-plus' %>"></i>
+                        </button>
+                    <% } %>
+                </div>
+
+                <!-- Profile Info -->
+                <div class="flex-1 text-center sm:text-left">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2"><%= user.displayName %></h1>
+                    <p class="text-gray-600 mb-4"><%= user.email %></p>
+                    
+                    <!-- Stats -->
+                    <div class="flex justify-center sm:justify-start space-x-6 text-sm">
+                        <div class="text-center">
+                            <span class="block font-bold text-gray-900"><%= user.stories ? user.stories.length : 0 %></span>
+                            <span class="text-gray-600">Stories</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="block font-bold text-gray-900"><%= user.followers ? user.followers.length : 0 %></span>
+                            <span class="text-gray-600">Followers</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="block font-bold text-gray-900"><%= user.following ? user.following.length : 0 %></span>
+                            <span class="text-gray-600">Following</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Profile Button (if own profile) -->
+                <% if (currentUser && currentUser._id.toString() === user._id.toString()) { %>
+                    <div class="mt-4 sm:mt-0">
+                        <button onclick="toggleEditForm()" class="btn-secondary">
+                            <i class="fas fa-edit mr-2"></i> Edit Profile
+                        </button>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Bio -->
+            <div class="mt-6">
+                <p class="text-gray-700"><%= user.bio || 'No bio yet.' %></p>
+            </div>
+        </div>
+
+        <!-- Edit Profile Form (Hidden by default) -->
+        <div id="editProfileForm" class="hidden p-6 sm:p-8 border-t border-gray-200">
+            <form action="/users/profile?_method=PUT" method="POST" enctype="multipart/form-data">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Profile Image</label>
+                        <input type="file" name="profileImage" class="mt-1 block w-full" accept="image/*">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Bio</label>
+                        <textarea name="bio" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"><%= user.bio %></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="toggleEditForm()" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- User's Stories -->
+        <div class="p-6 sm:p-8 border-t border-gray-200">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Stories</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <% if (user.stories && user.stories.length > 0) { %>
+                    <% user.stories.forEach(story => { %>
+                        <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+                            <a href="/stories/<%= story._id %>" class="block">
+                                <div class="aspect-w-16 aspect-h-9">
+                                    <% if (story.mediaType === 'video') { %>
+                                        <video src="<%= story.mediaUrl %>" class="w-full h-full object-cover"></video>
+                                    <% } else { %>
+                                        <img src="<%= story.mediaUrl || story.thumbnail %>" alt="<%= story.title %>" class="w-full h-full object-cover">
+                                    <% } %>
+                                </div>
+                                <div class="p-4">
+                                    <h3 class="font-semibold text-gray-900 mb-1"><%= story.title %></h3>
+                                    <div class="flex items-center justify-between text-sm text-gray-500">
+                                        <span><%= story.viewerStats ? story.viewerStats.totalViews : 0 %> views</span>
+                                        <span><%= story.getTimeRemainingText() %></span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-500">No stories yet.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleEditForm() {
+    const form = document.getElementById('editProfileForm');
+    form.classList.toggle('hidden');
+}
+
+// Follow/Unfollow functionality
+document.querySelectorAll('.follow-button').forEach(button => {
+    button.addEventListener('click', async () => {
+        const userId = button.dataset.userId;
+        const isFollowing = button.dataset.following === 'true';
+        const endpoint = isFollowing ? `/users/${userId}/unfollow` : `/users/${userId}/follow`;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                // Update button state
+                button.dataset.following = (!isFollowing).toString();
+                const icon = button.querySelector('i');
+                icon.classList.remove(isFollowing ? 'fa-check' : 'fa-plus');
+                icon.classList.add(isFollowing ? 'fa-plus' : 'fa-check');
+                
+                // Update followers count
+                const followersCount = document.querySelector('.followers-count');
+                const count = parseInt(followersCount.textContent);
+                followersCount.textContent = isFollowing ? count - 1 : count + 1;
+            }
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    });
+});
+</script> 

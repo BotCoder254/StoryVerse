@@ -1,0 +1,253 @@
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="px-6 py-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Create New Story</h2>
+            
+            <form action="/stories" method="POST" class="space-y-6" enctype="multipart/form-data" id="storyForm">
+                <!-- Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                    <div class="mt-1">
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            required
+                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Enter your story title"
+                        >
+                    </div>
+                </div>
+
+                <!-- Media Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Media (Optional)</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <div class="flex flex-col items-center">
+                                <!-- Preview Container -->
+                                <div id="mediaPreview" class="hidden mb-4 relative">
+                                    <img id="imagePreview" class="max-h-48 rounded-lg hidden" alt="Preview">
+                                    <video id="videoPreview" class="max-h-48 rounded-lg hidden" controls></video>
+                                    <button 
+                                        type="button" 
+                                        onclick="removeMedia()"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                    >
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="media" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <span>Upload a file</span>
+                                        <input 
+                                            id="media" 
+                                            name="media" 
+                                            type="file" 
+                                            class="sr-only"
+                                            accept="image/*,video/*"
+                                            onchange="previewMedia(this)"
+                                        >
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">
+                                    PNG, JPG, GIF up to 10MB (Images) or MP4 up to 50MB (Videos, max 15 seconds)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Caption -->
+                <div id="mediaCaptionContainer" class="hidden">
+                    <label for="mediaCaption" class="block text-sm font-medium text-gray-700">Media Caption</label>
+                    <div class="mt-1">
+                        <input
+                            type="text"
+                            id="mediaCaption"
+                            name="mediaCaption"
+                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Add a caption for your media"
+                        >
+                    </div>
+                </div>
+
+                <!-- Story Body -->
+                <div>
+                    <label for="body" class="block text-sm font-medium text-gray-700">Story Content</label>
+                    <div class="mt-1">
+                        <textarea
+                            id="body"
+                            name="body"
+                            rows="12"
+                            required
+                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Write your story here..."
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                        id="status"
+                        name="status"
+                        required
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                    </select>
+                </div>
+
+                <!-- Tags -->
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-gray-700">Tags</label>
+                    <div class="mt-1">
+                        <input
+                            type="text"
+                            id="tags"
+                            name="tags"
+                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Enter tags separated by commas"
+                        >
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">Separate tags with commas (e.g., fiction, adventure, mystery)</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button
+                        type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        <i class="fas fa-paper-plane mr-2"></i> Publish Story
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add TinyMCE Editor -->
+<script src="https://cdn.tiny.cloud/1/<%= process.env.TINYMCE_API_KEY %>/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '#body',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed permanentpen footnotes advtemplate advtable advcode editimage tableofcontents mergetags powerpaste tinymcespellchecker autocorrect typography inlinecss',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+        height: 400,
+        skin: 'oxide',
+        content_css: 'default',
+        branding: false,
+        promotion: false,
+        setup: function(editor) {
+            editor.on('change', function() {
+                editor.save();
+            });
+        }
+    });
+
+    // Form submission handler
+    document.getElementById('storyForm').onsubmit = function() {
+        tinymce.triggerSave();
+        return true;
+    };
+
+    // Media Preview Functions
+    function previewMedia(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const mediaPreview = document.getElementById('mediaPreview');
+        const imagePreview = document.getElementById('imagePreview');
+        const videoPreview = document.getElementById('videoPreview');
+        const mediaCaptionContainer = document.getElementById('mediaCaptionContainer');
+
+        // Show caption input
+        mediaCaptionContainer.classList.remove('hidden');
+
+        // Create object URL
+        const objectUrl = URL.createObjectURL(file);
+
+        if (file.type.startsWith('image/')) {
+            imagePreview.src = objectUrl;
+            imagePreview.classList.remove('hidden');
+            videoPreview.classList.add('hidden');
+        } else if (file.type.startsWith('video/')) {
+            videoPreview.src = objectUrl;
+            videoPreview.classList.remove('hidden');
+            imagePreview.classList.add('hidden');
+
+            // Check video duration
+            videoPreview.onloadedmetadata = function() {
+                if (this.duration > 15) {
+                    alert('Video must be 15 seconds or less');
+                    removeMedia();
+                    return;
+                }
+            };
+        }
+
+        mediaPreview.classList.remove('hidden');
+    }
+
+    function removeMedia() {
+        const input = document.getElementById('media');
+        const mediaPreview = document.getElementById('mediaPreview');
+        const imagePreview = document.getElementById('imagePreview');
+        const videoPreview = document.getElementById('videoPreview');
+        const mediaCaptionContainer = document.getElementById('mediaCaptionContainer');
+
+        input.value = '';
+        imagePreview.src = '';
+        videoPreview.src = '';
+        mediaPreview.classList.add('hidden');
+        mediaCaptionContainer.classList.add('hidden');
+    }
+
+    // Drag and Drop Support
+    const dropZone = document.querySelector('.border-dashed');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-indigo-500');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-indigo-500');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        
+        const input = document.getElementById('media');
+        input.files = dt.files;
+        previewMedia(input);
+    }
+</script> 

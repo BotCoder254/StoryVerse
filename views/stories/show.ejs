@@ -1,0 +1,300 @@
+<div class="min-h-screen bg-black flex items-center justify-center">
+    <div class="relative w-full max-w-lg mx-auto">
+        <!-- Story Content -->
+        <div class="relative aspect-[9/16] rounded-2xl overflow-hidden">
+            <!-- Story Media -->
+            <% if (story.mediaType === 'video') { %>
+                <video 
+                    src="<%= story.mediaUrl %>" 
+                    class="w-full h-full object-cover"
+                    controls
+                    autoplay>
+                </video>
+            <% } else if (story.mediaType === 'image') { %>
+                <img 
+                    src="<%= story.mediaUrl %>" 
+                    alt="<%= story.title %>"
+                    class="w-full h-full object-cover"
+                >
+            <% } else { %>
+                <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <p class="text-gray-500">No media</p>
+                </div>
+            <% } %>
+
+            <!-- Story Progress Bar -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gray-800 z-10">
+                <div class="h-full bg-blue-500 transition-all duration-100" id="progress-bar" style="width: 0%;"></div>
+            </div>
+
+            <!-- Story Header -->
+            <div class="absolute top-4 left-0 right-0 px-4 z-10">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <a href="/users/profile/<%= story.user._id %>" class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white relative group">
+                                <img src="<%= story.user.profileImage %>" alt="<%= story.user.displayName %>" class="w-full h-full object-cover">
+                                <% if (user && user._id.toString() !== story.user._id.toString()) { %>
+                                    <button class="follow-button absolute -bottom-1 right-0 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-blue-600 opacity-0 group-hover:opacity-100 transition-all"
+                                            data-user-id="<%= story.user._id %>"
+                                            data-following="<%= user.isFollowing(story.user._id) %>">
+                                        <i class="fas <%= user.isFollowing(story.user._id) ? 'fa-check' : 'fa-plus' %> text-xs"></i>
+                                    </button>
+                                <% } %>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium"><%= story.user.displayName %></p>
+                                <p class="text-gray-300 text-xs"><%= story.timeRemainingText %></p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-white hover:text-gray-300" onclick="window.history.back()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Story Actions -->
+            <div class="absolute bottom-4 right-4 z-10">
+                <div class="flex flex-col space-y-4">
+                    <button class="like-button w-12 h-12 rounded-full bg-black bg-opacity-50 flex items-center justify-center text-white hover:bg-opacity-70 transition-all">
+                        <i class="<%= story.likes && story.likes.includes(user?._id) ? 'fas text-blue-500' : 'far' %> fa-heart text-xl"></i>
+                    </button>
+                    <button onclick="toggleComments()" class="w-12 h-12 rounded-full bg-black bg-opacity-50 flex items-center justify-center text-white hover:bg-opacity-70 transition-all">
+                        <i class="far fa-comment text-xl"></i>
+                    </button>
+                    <button class="share-button w-12 h-12 rounded-full bg-black bg-opacity-50 flex items-center justify-center text-white hover:bg-opacity-70 transition-all">
+                        <i class="fas fa-share text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Story Title -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/50 to-transparent">
+                <h1 class="text-white text-lg font-medium mb-2"><%= story.title %></h1>
+                <div class="flex items-center justify-between text-white/80 text-sm">
+                    <div class="flex items-center">
+                        <i class="far fa-eye mr-1"></i>
+                        <span><%= story.viewerStats ? story.viewerStats.totalViews : 0 %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div id="comments-section" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto">
+                <div class="p-4 border-b sticky top-0 bg-white z-10">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Comments</h3>
+                        <button onclick="toggleComments()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Comment Form -->
+                <form class="comment-form p-4 border-b sticky top-14 bg-white z-10">
+                    <div class="flex items-start space-x-3">
+                        <img src="<%= user.profileImage %>" alt="" class="w-8 h-8 rounded-full">
+                        <div class="flex-1">
+                            <textarea name="content" rows="1" class="w-full px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Add a comment..."></textarea>
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Post</button>
+                    </div>
+                </form>
+
+                <!-- Comments List -->
+                <div class="comments-list p-4 space-y-4">
+                    <% story.comments.sort((a, b) => b.date - a.date).forEach(comment => { %>
+                        <div class="flex items-start space-x-3">
+                            <a href="/users/profile/<%= comment.user._id %>" class="block">
+                                <img src="<%= comment.user.profileImage %>" alt="" class="w-8 h-8 rounded-full">
+                            </a>
+                            <div class="flex-1">
+                                <a href="/users/profile/<%= comment.user._id %>" class="text-sm font-medium hover:underline">
+                                    <%= comment.user.displayName %>
+                                </a>
+                                <p class="text-sm text-gray-600"><%= comment.content %></p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    <%= new Date(comment.date).toLocaleDateString() %>
+                                </p>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Progress bar animation
+const progressBar = document.getElementById('progress-bar');
+const duration = <%= story.mediaType === 'video' ? 'document.querySelector("video").duration * 1000' : '5000' %>;
+let startTime = Date.now();
+
+function updateProgress() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min((elapsed / duration) * 100, 100);
+    progressBar.style.width = `${progress}%`;
+
+    if (progress < 100) {
+        requestAnimationFrame(updateProgress);
+    } else {
+        // Story ended
+        setTimeout(() => {
+            window.history.back();
+        }, 500);
+    }
+}
+
+// Start progress bar animation
+requestAnimationFrame(updateProgress);
+
+// Handle video if present
+const video = document.querySelector('video');
+if (video) {
+    video.addEventListener('loadedmetadata', () => {
+        duration = video.duration * 1000;
+        startTime = Date.now();
+    });
+
+    video.addEventListener('ended', () => {
+        setTimeout(() => {
+            window.history.back();
+        }, 500);
+    });
+}
+
+// Like functionality
+document.querySelector('.like-button')?.addEventListener('click', async () => {
+    try {
+        const response = await fetch(`/stories/<%= story._id %>/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const icon = document.querySelector('.like-button i');
+            icon.classList.toggle('far');
+            icon.classList.toggle('fas');
+            icon.classList.toggle('text-blue-500');
+        }
+    } catch (err) {
+        console.error('Error:', err);
+    }
+});
+
+// Follow functionality
+document.querySelectorAll('.follow-button').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const userId = button.dataset.userId;
+        const isFollowing = button.dataset.following === 'true';
+        const endpoint = isFollowing ? `/users/${userId}/unfollow` : `/users/${userId}/follow`;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                button.dataset.following = (!isFollowing).toString();
+                const icon = button.querySelector('i');
+                icon.classList.remove(isFollowing ? 'fa-check' : 'fa-plus');
+                icon.classList.add(isFollowing ? 'fa-plus' : 'fa-check');
+            }
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    });
+});
+
+// Share functionality
+document.querySelector('.share-button')?.addEventListener('click', () => {
+    if (navigator.share) {
+        navigator.share({
+            title: '<%= story.title %>',
+            text: 'Check out this story on StoryVerse',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+    }
+});
+
+// Handle keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        window.history.back();
+    }
+});
+
+// Toggle comments section
+function toggleComments() {
+    const commentsSection = document.getElementById('comments-section');
+    commentsSection.classList.toggle('hidden');
+}
+
+// Comment functionality
+document.querySelector('.comment-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const content = e.target.content.value.trim();
+    
+    if (!content) return;
+
+    try {
+        const response = await fetch(`/stories/<%= story._id %>/comment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content })
+        });
+
+        if (response.ok) {
+            const comment = await response.json();
+            const commentHTML = `
+                <div class="flex items-start space-x-3">
+                    <a href="/users/profile/${comment.user._id}" class="block">
+                        <img src="${comment.user.profileImage}" alt="" class="w-8 h-8 rounded-full">
+                    </a>
+                    <div class="flex-1">
+                        <a href="/users/profile/${comment.user._id}" class="text-sm font-medium hover:underline">
+                            ${comment.user.displayName}
+                        </a>
+                        <p class="text-sm text-gray-600">${comment.content}</p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            ${new Date(comment.date).toLocaleDateString()}
+                        </p>
+                    </div>
+                </div>
+            `;
+            const commentsList = document.querySelector('.comments-list');
+            commentsList.insertAdjacentHTML('afterbegin', commentHTML);
+            e.target.reset();
+        }
+    } catch (err) {
+        console.error('Error:', err);
+    }
+});
+
+// Update comment count
+function updateCommentCount() {
+    const commentCount = document.querySelectorAll('.comments-list > div').length;
+    const commentCountElement = document.querySelector('.comment-count');
+    if (commentCountElement) {
+        commentCountElement.textContent = commentCount;
+    }
+}
+</script> 

@@ -1,0 +1,119 @@
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Logo and Brand -->
+            <div class="flex">
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform duration-300">
+                            <span class="text-xl font-bold text-white">S</span>
+                        </div>
+                        <span class="text-xl font-bold text-indigo-600">StoryVerse</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Navigation -->
+            <div class="hidden sm:flex sm:items-center sm:ml-6">
+                <a href="/" class="text-gray-500 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Home
+                </a>
+                <% if (user) { %>
+                    <a href="/feed" class="text-gray-500 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-home mr-1"></i> Feed
+                    </a>
+                <% } %>
+                <a href="/stories" class="text-gray-500 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Stories
+                </a>
+                <% if (user) { %>
+                    <a href="/dashboard" class="text-gray-500 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Dashboard
+                    </a>
+                <% } %>
+            </div>
+
+            <!-- User Menu -->
+            <div class="flex items-center">
+                <% if (user) { %>
+                    <!-- New Story Button -->
+                    <a href="/stories/add" class="mr-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        New Story
+                    </a>
+
+                    <!-- User Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
+                            <img class="h-8 w-8 rounded-full object-cover" src="<%= user.image || 'https://ui-avatars.com/api/?name=' + user.displayName %>" alt="<%= user.displayName %>">
+                            <span class="hidden md:block text-sm font-medium text-gray-700"><%= user.displayName %></span>
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <a href="/users/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>
+                                    Profile
+                                </a>
+                                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-chart-bar mr-2"></i>
+                                    Dashboard
+                                </a>
+                                <a href="/users/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    Settings
+                                </a>
+                                <div class="border-t border-gray-100"></div>
+                                <a href="/users/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/users/login" class="text-gray-500 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Login
+                    </a>
+                    <a href="/users/register" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        Register
+                    </a>
+                <% } %>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="flex items-center sm:hidden">
+                <button @click="mobileMenu = !mobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div x-show="mobileMenu" class="sm:hidden">
+        <div class="pt-2 pb-3 space-y-1">
+            <a href="/" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50">
+                Home
+            </a>
+            <% if (user) { %>
+                <a href="/feed" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50">
+                    <i class="fas fa-home mr-1"></i> Feed
+                </a>
+            <% } %>
+            <a href="/stories" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50">
+                Stories
+            </a>
+            <% if (user) { %>
+                <a href="/dashboard" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50">
+                    Dashboard
+                </a>
+            <% } %>
+        </div>
+    </div>
+</nav>
+
+<!-- Alpine.js for Dropdowns -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script> 

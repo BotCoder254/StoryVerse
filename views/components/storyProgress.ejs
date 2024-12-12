@@ -1,0 +1,135 @@
+<div class="story-progress relative" data-story-id="<%= story._id %>">
+    <!-- Story Ring -->
+    <div class="relative">
+        <!-- Progress Ring -->
+        <svg class="w-20 h-20" viewBox="0 0 100 100">
+            <!-- Background Ring -->
+            <circle
+                cx="50"
+                cy="50"
+                r="48"
+                stroke="#E5E7EB"
+                stroke-width="4"
+                fill="none"
+            />
+            
+            <!-- Progress Ring -->
+            <circle
+                class="progress-ring"
+                cx="50"
+                cy="50"
+                r="48"
+                stroke="url(#gradient-<%= story._id %>)"
+                stroke-width="4"
+                fill="none"
+                stroke-dasharray="301.59"
+                stroke-dashoffset="<%= 301.59 * (1 - story.progressPercentage / 100) %>"
+                transform="rotate(-90 50 50)"
+            />
+
+            <!-- Gradient Definition -->
+            <defs>
+                <linearGradient id="gradient-<%= story._id %>" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color: #F59E0B" />
+                    <stop offset="50%" style="stop-color: #EF4444" />
+                    <stop offset="100%" style="stop-color: #8B5CF6" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Story Thumbnail -->
+        <div class="absolute inset-1 rounded-full overflow-hidden border-2 border-white">
+            <% if (story.mediaType === 'video') { %>
+                <video 
+                    src="<%= story.mediaUrl %>" 
+                    class="w-full h-full object-cover"
+                    muted
+                ></video>
+            <% } else { %>
+                <img 
+                    src="<%= story.mediaUrl || story.thumbnail %>" 
+                    alt="<%= story.title %>"
+                    class="w-full h-full object-cover"
+                >
+            <% } %>
+        </div>
+
+        <!-- Status Indicator -->
+        <div class="absolute -bottom-1 right-0 w-4 h-4 rounded-full border-2 border-white
+            <%= story.isExpiredNow() ? 'bg-gray-400' : (story.viewerStats && story.viewerStats.totalViews > 0) ? 'bg-green-500' : 'bg-blue-500' %>"
+            title="<%= story.getTimeRemainingText() %>">
+        </div>
+    </div>
+
+    <!-- Story Info -->
+    <div class="mt-2 text-center">
+        <p class="text-xs font-medium text-gray-900 truncate max-w-[80px]">
+            <%= story.user.displayName %>
+        </p>
+        <p class="text-xs text-gray-500">
+            <%= story.getTimeRemainingText() %>
+        </p>
+    </div>
+</div>
+
+<style>
+    @keyframes progress {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .progress-ring {
+        transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .story-progress:hover .progress-ring {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            stroke-width: 4;
+        }
+        50% {
+            stroke-width: 6;
+        }
+        100% {
+            stroke-width: 4;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const storyProgress = document.querySelector('[data-story-id="<%= story._id %>"]');
+        const progressRing = storyProgress.querySelector('.progress-ring');
+        const circumference = 2 * Math.PI * 48; // 2πr where r=48
+
+        // Update progress every second
+        setInterval(() => {
+            const now = new Date();
+            const expiresAt = new Date('<%= story.expiresAt %>');
+            const createdAt = new Date('<%= story.createdAt %>');
+            const totalDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
+            const elapsed = now - createdAt;
+            const progress = Math.min(100, (elapsed / totalDuration) * 100);
+            
+            // Update stroke-dashoffset
+            const offset = circumference * (1 - progress / 100);
+            progressRing.style.strokeDashoffset = offset;
+
+            // Update time remaining text
+            const timeRemainingElement = storyProgress.querySelector('p:last-child');
+            const timeLeft = expiresAt - now;
+            if (timeLeft <= 0) {
+                timeRemainingElement.textContent = 'Expired';
+                storyProgress.classList.add('opacity-50');
+            } else {
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                timeRemainingElement.textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+            }
+        }, 1000);
+    });
+</script> 

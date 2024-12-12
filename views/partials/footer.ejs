@@ -1,0 +1,126 @@
+<footer class="bg-white border-t">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+        <div class="xl:grid xl:grid-cols-3 xl:gap-8">
+            <!-- Brand -->
+            <div class="space-y-8 xl:col-span-1">
+                <div class="flex items-center space-x-2">
+                    <lottie-player
+                        src="https://assets8.lottiefiles.com/packages/lf20_kkflmtur.json"
+                        background="transparent"
+                        speed="1"
+                        style="width: 40px; height: 40px;"
+                        loop
+                        autoplay>
+                    </lottie-player>
+                    <span class="text-xl font-bold text-indigo-600">StoryVerse</span>
+                </div>
+                <p class="text-gray-500 text-base">
+                    Share your stories, inspire the world. Join our community of storytellers and make your voice heard.
+                </p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fab fa-facebook text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
+                <div class="md:grid md:grid-cols-2 md:gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                            Navigation
+                        </h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <a href="/" class="text-base text-gray-500 hover:text-gray-900">
+                                    Home
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/stories" class="text-base text-gray-500 hover:text-gray-900">
+                                    Stories
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/dashboard" class="text-base text-gray-500 hover:text-gray-900">
+                                    Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/stories/add" class="text-base text-gray-500 hover:text-gray-900">
+                                    Create Story
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-12 md:mt-0">
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                            Support
+                        </h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                                    Help Center
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                                    Privacy Policy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                                    Terms of Service
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-base text-gray-500 hover:text-gray-900">
+                                    Contact Us
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="mt-12 border-t border-gray-200 pt-8">
+            <p class="text-base text-gray-400 xl:text-center">
+                &copy; <%= new Date().getFullYear() %> StoryVerse. All rights reserved.
+            </p>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button
+        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+        class="fixed bottom-8 right-8 p-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300"
+        id="backToTop"
+        style="display: none;"
+    >
+        <i class="fas fa-arrow-up"></i>
+    </button>
+</footer>
+
+<script>
+// Show/hide back to top button based on scroll position
+window.onscroll = function() {
+    const backToTop = document.getElementById('backToTop');
+    if (document.body.scrollTop > 500 || document.documentElement.scrollTop > 500) {
+        backToTop.style.display = 'block';
+    } else {
+        backToTop.style.display = 'none';
+    }
+};
+</script> 

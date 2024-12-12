@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryVerse - Share Your Stories</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    
+    <!-- Styles -->
+    <link href="/css/tailwind.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    
+    <%- style %>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Modern Loading Animation */
+        .loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .loading-container.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-indicator {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .loading-indicator:before,
+        .loading-indicator:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #4f46e5;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .loading-indicator:after {
+            animation-delay: -1s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #4f46e5, #818cf8);
+            transform-origin: 0 50%;
+            transform: scaleX(0);
+            transition: transform 0.3s ease-in-out;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .progress-bar.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading-container">
+        <div class="loading-indicator"></div>
+    </div>
+
+    <!-- Navigation -->
+    <%- include('../partials/navbar') %>
+
+    <!-- Flash Messages -->
+    <%- include('../partials/messages') %>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <%- body %>
+    </main>
+
+    <!-- Footer -->
+    <%- include('../partials/footer') %>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <%- script %>
+
+    <!-- Global Scripts -->
+    <script>
+        // Loading State Management
+        const loadingState = {
+            timeoutId: null,
+            minimumLoadingTime: 500,
+            startTime: 0,
+
+            show() {
+                this.startTime = Date.now();
+                document.getElementById('loading').classList.add('active');
+                document.getElementById('progressBar').classList.add('active');
+                updateProgress(30);
+            },
+
+            hide() {
+                const elapsedTime = Date.now() - this.startTime;
+                const remainingTime = Math.max(0, this.minimumLoadingTime - elapsedTime);
+
+                clearTimeout(this.timeoutId);
+                this.timeoutId = setTimeout(() => {
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('progressBar').classList.remove('active');
+                    setTimeout(() => updateProgress(0), 300);
+                }, remainingTime);
+            }
+        };
+
+        // Progress Bar
+        const progressBar = document.getElementById('progressBar');
+        let progress = 0;
+
+        function updateProgress(value) {
+            progress = Math.min(value, 100);
+            progressBar.style.transform = `scaleX(${progress / 100})`;
+            if (progress === 100) {
+                setTimeout(() => {
+                    progressBar.style.transform = 'scaleX(0)';
+                }, 200);
+            }
+        }
+
+        // Loading Indicator Control
+        window.showLoading = () => {
+            loadingState.show();
+        };
+        
+        window.hideLoading = () => {
+            updateProgress(100);
+            loadingState.hide();
+        };
+
+        // Toast Notifications
+        window.showToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle text-green-500' : 'exclamation-circle text-red-500'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        };
+
+        // Format Dates
+        document.querySelectorAll('.format-date').forEach(element => {
+            const date = element.getAttribute('data-date');
+            if (date) {
+                element.textContent = moment(date).fromNow();
+            }
+        });
+
+        // Event Handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle Form Submissions
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', () => {
+                    showLoading();
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

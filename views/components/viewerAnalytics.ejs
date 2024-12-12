@@ -1,0 +1,223 @@
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-gray-900">Viewer Analytics</h3>
+        <div class="text-sm text-gray-500">
+            Last updated: <%= new Date().toLocaleTimeString() %>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <!-- Total Views -->
+        <div class="bg-indigo-50 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-indigo-600">Total Views</p>
+                    <p class="text-2xl font-bold text-indigo-900"><%= story.viewerStats.totalViews %></p>
+                </div>
+                <div class="bg-indigo-100 rounded-full p-3">
+                    <i class="fas fa-eye text-indigo-600"></i>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-indigo-600">
+                <% const viewsChange = story.viewerStats.totalViews - story.viewerStats.uniqueViewers; %>
+                <% if (viewsChange > 0) { %>
+                    <i class="fas fa-arrow-up"></i> <%= viewsChange %> repeat views
+                <% } %>
+            </p>
+        </div>
+
+        <!-- Unique Viewers -->
+        <div class="bg-green-50 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-green-600">Unique Viewers</p>
+                    <p class="text-2xl font-bold text-green-900"><%= story.viewerStats.uniqueViewers %></p>
+                </div>
+                <div class="bg-green-100 rounded-full p-3">
+                    <i class="fas fa-users text-green-600"></i>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-green-600">
+                <%= Math.round((story.viewerStats.uniqueViewers / story.viewerStats.totalViews) * 100) %>% of total views
+            </p>
+        </div>
+
+        <!-- Completion Rate -->
+        <div class="bg-yellow-50 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-yellow-600">Completion Rate</p>
+                    <p class="text-2xl font-bold text-yellow-900"><%= story.viewerStats.completionRate %>%</p>
+                </div>
+                <div class="bg-yellow-100 rounded-full p-3">
+                    <i class="fas fa-check-circle text-yellow-600"></i>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-yellow-600">
+                Average view time: <%= story.viewerStats.averageViewDuration %>s
+            </p>
+        </div>
+
+        <!-- Peak Time -->
+        <div class="bg-purple-50 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-purple-600">Peak Viewing Time</p>
+                    <p class="text-2xl font-bold text-purple-900">
+                        <%= story.viewerStats.peakViewingTime ? 
+                            new Date(story.viewerStats.peakViewingTime).getHours() + ':00' : 
+                            'N/A' 
+                        %>
+                    </p>
+                </div>
+                <div class="bg-purple-100 rounded-full p-3">
+                    <i class="fas fa-clock text-purple-600"></i>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-purple-600">
+                Most active viewing hour
+            </p>
+        </div>
+    </div>
+
+    <!-- Viewing Pattern Chart -->
+    <div class="mb-8">
+        <h4 class="text-sm font-semibold text-gray-900 mb-4">Viewing Pattern</h4>
+        <div class="h-48 relative">
+            <canvas id="viewingPatternChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Viewers -->
+    <div class="mb-8">
+        <h4 class="text-sm font-semibold text-gray-900 mb-4">Recent Viewers</h4>
+        <div class="space-y-4">
+            <% story.viewers.slice(0, 5).forEach(viewer => { %>
+                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                    <div class="flex items-center space-x-3">
+                        <img 
+                            src="<%= viewer.user.profileImage %>" 
+                            alt="<%= viewer.user.displayName %>"
+                            class="w-8 h-8 rounded-full"
+                        >
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">
+                                <%= viewer.user.displayName %>
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                <%= new Date(viewer.viewedAt).toLocaleString() %>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <span><i class="fas fa-clock"></i> <%= viewer.duration %>s</span>
+                        <% if (viewer.completedViewing) { %>
+                            <span class="text-green-500"><i class="fas fa-check-circle"></i></span>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <!-- Demographics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Devices -->
+        <div>
+            <h4 class="text-sm font-semibold text-gray-900 mb-4">Devices</h4>
+            <div class="space-y-2">
+                <% Object.entries(story.viewerStats.devices || {}).forEach(([device, count]) => { %>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">
+                            <i class="fas <%= 
+                                device.toLowerCase().includes('mobile') ? 'fa-mobile-alt' :
+                                device.toLowerCase().includes('tablet') ? 'fa-tablet-alt' :
+                                'fa-laptop'
+                            %>"></i>
+                            <%= device %>
+                        </span>
+                        <span class="text-sm font-medium text-gray-900"><%= count %></span>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <!-- Locations -->
+        <div>
+            <h4 class="text-sm font-semibold text-gray-900 mb-4">Top Locations</h4>
+            <div class="space-y-2">
+                <% Object.entries(story.viewerStats.locations || {})
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5)
+                    .forEach(([location, count]) => { %>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <%= location %>
+                        </span>
+                        <span class="text-sm font-medium text-gray-900"><%= count %></span>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('viewingPatternChart').getContext('2d');
+        const viewsByHour = <%- JSON.stringify(story.viewerStats.viewsByHour || []) %>;
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: viewsByHour.map(v => `${v.hour}:00`),
+                datasets: [{
+                    label: 'Views',
+                    data: viewsByHour.map(v => v.count),
+                    borderColor: 'rgb(99, 102, 241)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // Auto-refresh analytics
+    setInterval(() => {
+        fetch(`/stories/${story._id}/analytics`)
+            .then(res => res.json())
+            .then(data => {
+                // Update stats
+                document.querySelector('[data-stat="totalViews"]').textContent = data.totalViews;
+                document.querySelector('[data-stat="uniqueViewers"]').textContent = data.uniqueViewers;
+                document.querySelector('[data-stat="completionRate"]').textContent = data.completionRate + '%';
+                
+                // Update last updated time
+                document.querySelector('#lastUpdated').textContent = 
+                    new Date().toLocaleTimeString();
+            });
+    }, 30000); // Refresh every 30 seconds
+</script> 

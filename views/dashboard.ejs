@@ -1,0 +1,288 @@
+<!-- Dashboard Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Dashboard Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">
+                Welcome back, <%= user.displayName %>! 👋
+            </h1>
+            <p class="mt-1 text-gray-500">Here's what's happening with your stories</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="/stories/add" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i> New Story
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Stories -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Stories</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mt-1" id="totalStories">
+                        <%= allStories.length %>
+                    </h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-book text-blue-600 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-green-500 flex items-center">
+                    <i class="fas fa-arrow-up mr-1"></i>
+                    <%= allStories.filter(s => new Date(s.createdAt) > new Date(Date.now() - 24*60*60*1000)).length %>
+                </span>
+                <span class="text-gray-500 ml-2">Last 24 hours</span>
+            </div>
+        </div>
+
+        <!-- Total Views -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Views</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mt-1" id="totalViews">
+                        <%= totalViews %>
+                    </h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-eye text-green-600 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-green-500 flex items-center">
+                    <i class="fas fa-users mr-1"></i>
+                    <%= allStories.reduce((sum, story) => sum + (story.viewerStats ? story.viewerStats.uniqueViewers : 0), 0) %>
+                </span>
+                <span class="text-gray-500 ml-2">Unique viewers</span>
+            </div>
+        </div>
+
+        <!-- Engagement -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Engagement</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mt-1">
+                        <%= totalLikes + totalComments %>
+                    </h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-heart text-purple-600 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-purple-500 flex items-center">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    <%= Math.round((totalLikes + totalComments) / Math.max(1, totalViews) * 100) %>%
+                </span>
+                <span class="text-gray-500 ml-2">Engagement rate</span>
+            </div>
+        </div>
+
+        <!-- Active Stories -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Active Stories</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mt-1" id="activeStories">
+                        <%= stories.length %>
+                    </h3>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-yellow-500 flex items-center">
+                    <i class="fas fa-hourglass-half mr-1"></i>
+                    <%= stories.filter(story => story.timeRemaining < 3600).length %>
+                </span>
+                <span class="text-gray-500 ml-2">Expiring soon</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Stories Grid -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-900">Your Stories</h2>
+                <div class="flex items-center space-x-2">
+                    <select id="storyFilter" class="form-select text-sm">
+                        <option value="all">All Stories</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                    <select id="sortOrder" class="form-select text-sm">
+                        <option value="newest">Newest First</option>
+                        <option value="popular">Most Viewed</option>
+                        <option value="engaging">Most Engaging</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stories Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="storiesGrid">
+                <% if (allStories.length > 0) { %>
+                    <% allStories.forEach(story => { %>
+                        <div class="story-card bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200" 
+                            data-status="<%= story.isExpiredNow() ? 'expired' : 'active' %>"
+                            data-views="<%= story.viewerStats ? story.viewerStats.totalViews : 0 %>"
+                            data-engagement="<%= story.viewerStats ? story.viewerStats.completionRate : 0 %>">
+                            
+                            <!-- Story Preview -->
+                            <div class="relative aspect-w-16 aspect-h-9">
+                                <% if (story.mediaType === 'video') { %>
+                                    <video class="w-full h-full object-cover" muted>
+                                        <source src="<%= story.mediaUrl %>" type="video/mp4">
+                                    </video>
+                                <% } else { %>
+                                    <img 
+                                        src="<%= story.mediaUrl || story.thumbnail %>" 
+                                        alt="<%= story.title %>"
+                                        class="w-full h-full object-cover"
+                                    >
+                                <% } %>
+
+                                <!-- Status Badge -->
+                                <div class="absolute top-2 right-2">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        <%= story.status === 'public' ? 
+                                            'bg-green-100 text-green-800' : 
+                                            'bg-yellow-100 text-yellow-800' %>">
+                                        <%= story.status %>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Story Info -->
+                            <div class="p-4">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                    <%= story.title %>
+                                </h3>
+                                
+                                <!-- Stats -->
+                                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                                    <span class="flex items-center">
+                                        <i class="far fa-eye mr-1"></i>
+                                        <%= story.viewerStats ? story.viewerStats.totalViews : 0 %>
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i class="far fa-clock mr-1"></i>
+                                        <%= story.getTimeRemainingText() %>
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i class="far fa-chart-bar mr-1"></i>
+                                        <%= story.viewerStats ? story.viewerStats.completionRate : 0 %>%
+                                    </span>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="flex items-center justify-between">
+                                    <div class="flex space-x-2">
+                                        <a href="/stories/<%= story._id %>" class="btn-secondary text-sm">
+                                            <i class="fas fa-eye mr-1"></i> View
+                                        </a>
+                                        <a href="/stories/edit/<%= story._id %>" class="btn-secondary text-sm">
+                                            <i class="fas fa-edit mr-1"></i> Edit
+                                        </a>
+                                    </div>
+                                    <button onclick="showAnalytics('<%= story._id %>')" class="text-indigo-600 hover:text-indigo-800">
+                                        <i class="fas fa-chart-pie"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Analytics Section (Hidden by default) -->
+                            <div id="analytics-<%= story._id %>" class="hidden p-4 bg-gray-50 rounded-b-lg">
+                                <%- include('./components/viewerAnalytics', { story: story }) %>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="col-span-full text-center py-12">
+                        <div class="flex justify-center mb-4">
+                            <lottie-player
+                                src="https://assets9.lottiefiles.com/packages/lf20_hl5n0bwb.json"
+                                background="transparent"
+                                speed="1"
+                                style="width: 200px; height: 200px;"
+                                loop
+                                autoplay>
+                            </lottie-player>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">No stories yet</h3>
+                        <p class="mt-1 text-gray-500">Start sharing your stories with the world!</p>
+                        <div class="mt-6">
+                            <a href="/stories/add" class="btn-primary">
+                                <i class="fas fa-plus mr-2"></i> Create Your First Story
+                            </a>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Story filtering and sorting
+    const storyFilter = document.getElementById('storyFilter');
+    const sortOrder = document.getElementById('sortOrder');
+    const storiesGrid = document.getElementById('storiesGrid');
+
+    function filterAndSortStories() {
+        const cards = Array.from(document.querySelectorAll('.story-card'));
+        const status = storyFilter.value;
+        const sort = sortOrder.value;
+
+        cards.forEach(card => {
+            // Filter
+            if (status === 'all' || card.dataset.status === status) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Sort
+        cards.sort((a, b) => {
+            switch (sort) {
+                case 'popular':
+                    return b.dataset.views - a.dataset.views;
+                case 'engaging':
+                    return b.dataset.engagement - a.dataset.engagement;
+                default: // newest
+                    return new Date(b.dataset.date) - new Date(a.dataset.date);
+            }
+        });
+
+        cards.forEach(card => storiesGrid.appendChild(card));
+    }
+
+    storyFilter.addEventListener('change', filterAndSortStories);
+    sortOrder.addEventListener('change', filterAndSortStories);
+
+    // Analytics toggle
+    function showAnalytics(storyId) {
+        const analytics = document.getElementById(`analytics-${storyId}`);
+        analytics.classList.toggle('hidden');
+    }
+
+    // Initialize story progress rings
+    document.querySelectorAll('.story-progress').forEach(progress => {
+        const remaining = parseInt(progress.dataset.remaining);
+        const total = 24 * 60 * 60; // 24 hours in seconds
+        const percent = ((total - remaining) / total) * 100;
+        
+        progress.style.background = `conic-gradient(
+            from 0deg,
+            rgb(99 102 241) ${percent}%,
+            rgb(229 231 235) ${percent}%
+        )`;
+    });
+</script> 

@@ -1,0 +1,154 @@
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Stories Bar -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div class="flex items-center space-x-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <!-- Current User Story -->
+            <div class="flex-shrink-0">
+                <a href="/stories/add" class="block">
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
+                            <img src="<%= currentUser.profileImage %>" alt="Your Story" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-1 right-0">
+                            <div class="bg-blue-500 rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                                <i class="fas fa-plus text-white text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-center font-medium text-gray-900">Add Story</p>
+                </a>
+            </div>
+
+            <!-- Stories -->
+            <% stories.forEach(story => { %>
+                <div class="flex-shrink-0">
+                    <a href="/stories/<%= story._id %>" class="block">
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-full overflow-hidden <%= !story.isExpiredNow() ? 'border-2 border-gradient-to-r from-yellow-400 via-red-500 to-pink-500' : 'border-2 border-gray-200' %>">
+                                <% if (story.mediaType === 'video') { %>
+                                    <video src="<%= story.mediaUrl %>" class="w-full h-full object-cover" muted></video>
+                                <% } else { %>
+                                    <img src="<%= story.mediaUrl || story.thumbnail %>" alt="<%= story.title %>" class="w-full h-full object-cover">
+                                <% } %>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-xs text-center font-medium text-gray-900 truncate max-w-[64px]">
+                            <%= story.title %>
+                        </p>
+                    </a>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <!-- Reels Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <% stories.forEach(story => { %>
+            <div class="relative aspect-[9/16] rounded-lg overflow-hidden group hover:scale-[1.02] transition-transform duration-200">
+                <!-- Story Media -->
+                <% if (story.mediaType === 'video') { %>
+                    <video src="<%= story.mediaUrl %>" class="w-full h-full object-cover" loop muted></video>
+                <% } else { %>
+                    <img src="<%= story.mediaUrl || story.thumbnail %>" alt="<%= story.title %>" class="w-full h-full object-cover">
+                <% } %>
+
+                <!-- Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black opacity-90">
+                    <!-- Story Info -->
+                    <div class="absolute bottom-0 left-0 right-0 p-4">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
+                                <img src="<%= story.user.profileImage %>" alt="<%= story.user.displayName %>" class="w-full h-full object-cover">
+                            </div>
+                            <a href="/users/profile/<%= story.user._id %>" class="text-white font-medium text-sm hover:text-indigo-300">
+                                <%= story.user.displayName %>
+                            </a>
+                        </div>
+                        <h3 class="text-white font-medium mb-1 line-clamp-2"><%= story.title %></h3>
+                        <div class="flex items-center justify-between text-white text-xs">
+                            <span><%= story.getTimeRemainingText() %></span>
+                            <div class="flex items-center space-x-3">
+                                <span class="flex items-center">
+                                    <i class="far fa-eye mr-1"></i>
+                                    <%= story.viewerStats ? story.viewerStats.totalViews : 0 %>
+                                </span>
+                                <span class="flex items-center">
+                                    <i class="far fa-heart mr-1"></i>
+                                    <%= story.likes ? story.likes.length : 0 %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Play Button (centered) -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a href="/stories/<%= story._id %>" class="w-12 h-12 rounded-full bg-white bg-opacity-80 flex items-center justify-center hover:bg-opacity-100 transition-all">
+                        <i class="fas fa-play text-gray-900"></i>
+                    </a>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+
+    <% if (stories.length === 0) { %>
+        <div class="text-center py-12">
+            <div class="mb-4">
+                <lottie-player
+                    src="https://assets3.lottiefiles.com/packages/lf20_ydo1amjm.json"
+                    background="transparent"
+                    speed="1"
+                    style="width: 200px; height: 200px; margin: 0 auto;"
+                    loop
+                    autoplay>
+                </lottie-player>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">No Stories Yet</h3>
+            <p class="text-gray-500 mt-2">Follow more users to see their stories here!</p>
+        </div>
+    <% } %>
+</div>
+
+<style>
+.border-gradient-to-r {
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(to right, #F59E0B, #EF4444, #EC4899) border-box;
+    border: 2px solid transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: #F3F4F6;
+    border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Hover effect for story cards */
+.group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+}
+</style>
+
+<script>
+// Auto-play videos on hover
+document.querySelectorAll('video').forEach(video => {
+    video.addEventListener('mouseenter', () => {
+        video.play();
+    });
+    video.addEventListener('mouseleave', () => {
+        video.pause();
+        video.currentTime = 0;
+    });
+});
+</script> 
